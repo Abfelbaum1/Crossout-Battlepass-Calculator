@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Battlepass Level Rechner</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+  --primary: #6c5ce7;
+  --secondary: #a29bfe;
+  --dark: #1a1a2e;
+  --darker: #0f0f1a;
+  --light: #f8f9fa;
+  --success: #00b894;
+  --warning: #fdcb6e;
+  --danger: #d63031;
+  --info: #0984e3;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, var(--darker), var(--dark));
+  color: var(--light);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  line-height: 1.6;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 30px;
+  width: 100%;
+  position: relative;
+}
+
+.language-switcher {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  gap: 8px;
+}
+
+.flag-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  width: 40px;
+  height: 30px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+  color: white;
+  text-shadow: 0 0 2px rgba(0, 0, 0, 0.7);
+}
+
+.flag-btn.de {
+  background: linear-gradient(to bottom, #000000 33%, #dd0000 33%, #dd0000 66%, #ffce00 66%);
+}
+
+.flag-btn.en {
+  background:
+    /* Horizontaler Balken */
+    linear-gradient(#fff 0 40%, red 40% 60%, #fff 60%),
+    /* Vertikaler Balken */
+    linear-gradient(90deg, #fff 0 40%, red 40% 60%, #fff 60%);
+  background-blend-mode: multiply; /* mischt die Balken */
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.flag-btn.active {
+  transform: scale(1.1);
+  box-shadow: 0 0 0 2px var(--primary), 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.flag-btn:hover {
+  transform: scale(1.15);
+}
+
+h1 {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+  background: linear-gradient(to right, var(--secondary), var(--primary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 2px 10px rgba(108, 92, 231, 0.3);
+}
+
+.subtitle {
+  color: var(--secondary);
+  font-size: 1.1rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.container {
+  background: rgba(26, 26, 46, 0.8);
+  backdrop-filter: blur(10px);
+  padding: 25px;
+  border-radius: 15px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.input-group {
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--secondary);
+}
+
+input[type="number"] {
+  width: 100%;
+  padding: 12px 15px;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  background: rgba(10, 10, 20, 0.6);
+  color: var(--light);
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+input[type="number"]:focus {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.3);
+}
+
+.pass-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  background: rgba(10, 10, 20, 0.4);
+  padding: 15px;
+  border-radius: 10px;
+  gap: 15px;
+}
+
+.toggle-container {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.toggle-labels {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.9rem;
+  color: var(--secondary);
+  min-width: 60px;
+  font-weight: 600;
+}
+
+.toggle-labels span:first-child {
+  font-size: 1rem;
+  margin-bottom: 4px;
+}
+
+.toggle-labels span:last-child {
+  font-size: 0.8rem;
+  color: var(--primary);
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 30px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #333;
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 22px;
+  width: 22px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+  background-color: var(--primary);
+}
+
+input:checked + .toggle-slider:before {
+  transform: translateX(30px);
+}
+
+.slider-container {
+  margin-top: 5px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.slider {
+  flex: 1;
+  -webkit-appearance: none;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  outline: none;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.slider::-webkit-slider-thumb:hover {
+  background: var(--secondary);
+  transform: scale(1.2);
+}
+
+.value-display {
+  min-width: 40px;
+  text-align: center;
+  font-weight: bold;
+  color: var(--primary);
+}
+
+.result-container {
+  margin-top: 25px;
+  padding: 20px;
+  background: rgba(10, 10, 20, 0.4);
+  border-radius: 10px;
+  text-align: center;
+}
+
+.level-display {
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin: 10px 0;
+  color: var(--success);
+}
+
+.progress-container {
+  width: 100%;
+  height: 30px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  margin: 20px 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  border-radius: 15px;
+  width: 0;
+  transition: width 0.8s ease;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.progress-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-weight: 700;
+  text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
+  z-index: 1;
+}
+
+.xp-details {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  font-size: 0.9rem;
+  color: var(--secondary);
+}
+
+.info-text {
+  margin-top: 20px;
+  padding: 15px;
+  background: rgba(10, 10, 20, 0.4);
+  border-radius: 10px;
+  font-size: 0.9rem;
+  color: var(--secondary);
+}
+
+.info-text i {
+  color: var(--primary);
+  margin-right: 5px;
+}
+
+.legendary-info {
+  margin-top: 15px;
+  padding: 10px;
+  background: rgba(153, 128, 250, 0.1);
+  border-radius: 8px;
+  border-left: 3px solid gold;
+}
+
+.legendary-info p {
+  margin: 5px 0;
+  color: #ffd700;
+}
+
+footer {
+  margin-top: 30px;
+  text-align: center;
+  color: var(--secondary);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 600px) {
+  h1 {
+    font-size: 2rem;
+  }
+  
+  .container {
+    padding: 20px;
+  }
+  
+  .level-display {
+    font-size: 1.8rem;
+  }
+  
+  .language-switcher {
+    position: relative;
+    justify-content: center;
+    margin-bottom: 15px;
+  }
+  
+  .flag-btn {
+    width: 35px;
+    height: 26px;
+  }
+  
+  .toggle-container {
+    gap: 10px;
+  }
+  
+  .toggle-labels {
+    font-size: 0.8rem;
+    min-width: 50px;
+  }
+  
+  .toggle-labels span:first-child {
+    font-size: 0.9rem;
+  }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="language-switcher">
+    <button class="flag-btn de active" id="lang-de" title="Deutsch">DE</button>
+    <button class="flag-btn en" id="lang-en" title="English">EN</button>
+  </div>
+  <h1 data-de="Battlepass Level Rechner" data-en="Battlepass Level Calculator">Battlepass Level Rechner</h1>
+  <p class="subtitle" data-de="Berechne deine Fortschritte im Battlepass und finde heraus, welche Level du erreichen kannst" data-en="Calculate your Battlepass progress and find out which levels you can reach">Berechne deine Fortschritte im Battlepass und finde heraus, welche Level du erreichen kannst</p>
+</header>
+
+<div class="container">
+  <div class="input-group">
+    <label for="missedDays" data-de="Verpasste Tage:" data-en="Missed Days:">Verpasste Tage:</label>
+    <input type="number" id="missedDays" value="0" min="0" max="84">
+    <div class="slider-container">
+      <input type="range" class="slider" id="missedDaysSlider" min="0" max="84" value="0">
+      <span class="value-display" id="missedDaysValue">0</span>
+    </div>
+  </div>
+
+  <div class="input-group">
+    <label for="daysLeft" data-de="Verbleibende Tage:" data-en="Days Left:">Verbleibende Tage:</label>
+    <input type="number" id="daysLeft" value="84" min="0" max="84">
+    <div class="slider-container">
+      <input type="range" class="slider" id="daysLeftSlider" min="0" max="84" value="84">
+      <span class="value-display" id="daysLeftValue">84</span>
+    </div>
+  </div>
+
+  <div class="pass-toggle">
+    <div class="toggle-container">
+      <div class="toggle-labels">
+        <span data-de="Normal" data-en="Normal">Normal</span>
+		<span></span>
+      </div>
+      
+      <label class="toggle-switch">
+        <input type="checkbox" id="passType">
+        <span class="toggle-slider"></span>
+      </label>
+      
+      <div class="toggle-labels">
+        <span data-de="Deluxe" data-en="Deluxe">Deluxe</span>
+		<span></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="result-container">
+    <p data-de="Aktuell erreichte Level:" data-en="Current Level:">Aktuell erreichte Level:</p>
+    <div class="level-display" id="levelDisplay">0.0</div>
+    
+    <div class="progress-container">
+      <div class="progress-bar" id="progressBar"></div>
+      <div class="progress-text" id="progressText">0%</div>
+    </div>
+    
+    <div class="xp-details">
+      <span id="currentXP">0 XP</span>
+      <span id="totalXP">424.790 XP</span>
+    </div>
+  </div>
+
+  <div class="info-text">
+    <p><i class="fas fa-info-circle"></i> <span data-de="Tägliche Aufgaben: 1.500 XP" data-en="Daily Challenges: 1,500 XP">Tägliche Aufgaben: 1.500 XP</span></p>
+    <p><i class="fas fa-info-circle"></i> <span data-de="Wöchentliche Aufgaben: 25.000 XP (jede Woche am ersten Tag)" data-en="Weekly Challenges: 25,000 XP (first day of each week)">Wöchentliche Aufgaben: 25.000 XP</span></p>
+    <p><i class="fas fa-info-circle"></i> <span data-de="Pro Level benötigt: 3.970 XP" data-en="XP per Level: 3,970 XP">Pro Level benötigt: 3.970 XP</span></p>
+    <div class="legendary-info">
+      <p><i class="fas fa-star"></i> <span data-de="Erste legendäre Waffe bei Level 86" data-en="First legendary weapon at Level 86">Erste legendäre Waffe bei Level 86</span></p>
+      <p><i class="fas fa-star"></i> <span data-de="Zweite legendäre Waffe bei Level 106" data-en="Second legendary weapon at Level 106">Zweite legendäre Waffe bei Level 106</span></p>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>© 2025 Battlepass Rechner | <span data-de="Designed with" data-en="Designed with">Designed with</span> <i class="fas fa-heart" style="color: var(--danger)"></i> by Abfelbaum</p>
+</footer>
+
+<script>
+const DAILY_XP = 1500;
+const WEEKLY_XP = 25000;
+const XP_PER_LEVEL = 3970;
+const TOTAL_DAYS = 84;
+const MAX_LEVEL = 107;
+const TOTAL_XP_NEEDED = MAX_LEVEL * XP_PER_LEVEL;
+
+// DOM Elements
+const missedDaysInput = document.getElementById('missedDays');
+const missedDaysSlider = document.getElementById('missedDaysSlider');
+const missedDaysValue = document.getElementById('missedDaysValue');
+const daysLeftInput = document.getElementById('daysLeft');
+const daysLeftSlider = document.getElementById('daysLeftSlider');
+const daysLeftValue = document.getElementById('daysLeftValue');
+const passTypeToggle = document.getElementById('passType');
+const levelDisplay = document.getElementById('levelDisplay');
+const currentXPSpan = document.getElementById('currentXP');
+const totalXPSpan = document.getElementById('totalXP');
+const progressBar = document.getElementById('progressBar');
+const progressText = document.getElementById('progressText');
+
+// Language elements
+const langDeBtn = document.getElementById('lang-de');
+const langEnBtn = document.getElementById('lang-en');
+const translatableElements = document.querySelectorAll('[data-de]');
+
+// Initialize values
+totalXPSpan.textContent = TOTAL_XP_NEEDED.toLocaleString('de-DE') + ' XP';
+
+// Language switching
+function switchLanguage(lang) {
+  translatableElements.forEach(element => {
+    if (lang === 'de') {
+      element.textContent = element.getAttribute('data-de');
+    } else if (lang === 'en') {
+      element.textContent = element.getAttribute('data-en');
+    }
+  });
+  
+  // Update button states
+  if (lang === 'de') {
+    langDeBtn.classList.add('active');
+    langEnBtn.classList.remove('active');
+  } else {
+    langDeBtn.classList.remove('active');
+    langEnBtn.classList.add('active');
+  }
+  
+  // Recalculate to update any text in results
+  calculateLevels();
+}
+
+// Event listeners for language buttons
+langDeBtn.addEventListener('click', () => switchLanguage('de'));
+langEnBtn.addEventListener('click', () => switchLanguage('en'));
+
+// Sync inputs and sliders
+function syncInputAndSlider(inputElement, sliderElement, valueElement) {
+  sliderElement.value = inputElement.value;
+  valueElement.textContent = inputElement.value;
+}
+
+// Event listeners for missed days
+missedDaysInput.addEventListener('input', function() {
+  syncInputAndSlider(missedDaysInput, missedDaysSlider, missedDaysValue);
+  calculateLevels();
+});
+
+missedDaysSlider.addEventListener('input', function() {
+  missedDaysInput.value = missedDaysSlider.value;
+  missedDaysValue.textContent = missedDaysSlider.value;
+  calculateLevels();
+});
+
+// Event listeners for days left
+daysLeftInput.addEventListener('input', function() {
+  syncInputAndSlider(daysLeftInput, daysLeftSlider, daysLeftValue);
+  calculateLevels();
+});
+
+daysLeftSlider.addEventListener('input', function() {
+  daysLeftInput.value = daysLeftSlider.value;
+  daysLeftValue.textContent = daysLeftSlider.value;
+  calculateLevels();
+});
+
+// Event listener for pass type toggle
+passTypeToggle.addEventListener('change', calculateLevels);
+
+// Main calculation function
+function calculateLevels() {
+  let missedDays = parseInt(missedDaysInput.value, 10) || 0;
+  let daysLeft = parseInt(daysLeftInput.value, 10) || 0;
+  let isDeluxePass = passTypeToggle.checked;
+
+  // Validate inputs
+  if (missedDays < 0) missedDays = 0;
+  if (daysLeft < 0) daysLeft = 0;
+  if (daysLeft > TOTAL_DAYS) daysLeft = TOTAL_DAYS;
+
+  const daysElapsed = TOTAL_DAYS - daysLeft;
+  const effectiveDailyDays = Math.max(daysElapsed - missedDays, 0);
+
+  // Korrekte Berechnung der wöchentlichen XP:
+  // Wöchentliche Aufgaben gibt es nur am ersten Tag jeder Woche (Tag 1, 8, 15, ..., 78)
+  const weeklyTasks = Math.min(Math.floor((daysElapsed - 1) / 7) + 1, 12);
+  const weeklyXP = Math.max(weeklyTasks, 0) * WEEKLY_XP;
+
+  const dailyXP = effectiveDailyDays * DAILY_XP;
+
+  let totalXP = dailyXP + weeklyXP;
+
+  let levels = totalXP / XP_PER_LEVEL; // Decimal value
+
+  // Bonus levels from pass type
+  if (isDeluxePass) {
+    levels += 16; // Deluxe Pass gibt +16 Level
+  } else {
+    levels += 1; // Standard Pass gibt +1 Level
+  }
+
+  // Update UI
+  levelDisplay.textContent = levels.toFixed(1);
+  
+  // Update progress bar
+  const progressPercent = Math.min((totalXP / TOTAL_XP_NEEDED) * 100, 100);
+  progressBar.style.width = progressPercent + '%';
+  progressText.textContent = progressPercent.toFixed(1) + '%';
+  
+  // Update XP display
+  currentXPSpan.textContent = Math.round(totalXP).toLocaleString('de-DE') + ' XP';
+  
+  // Change color based on progress
+  if (progressPercent >= 100) {
+    progressBar.style.background = 'linear-gradient(90deg, var(--success), var(--secondary))';
+    levelDisplay.style.color = 'var(--success)';
+  } else if (progressPercent >= 70) {
+    progressBar.style.background = 'linear-gradient(90deg, var(--warning), var(--secondary))';
+    levelDisplay.style.color = 'var(--warning)';
+  } else {
+    progressBar.style.background = 'linear-gradient(90deg, var(--primary), var(--secondary))';
+    levelDisplay.style.color = 'var(--success)';
+  }
+}
+
+// Initialize calculations
+calculateLevels();
+</script>
+
+</body>
+</html>
